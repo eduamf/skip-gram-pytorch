@@ -14,7 +14,7 @@ class Options(object):
     self.save_path = "tmp"
     self.vocabulary = self.read_data(datafile)
     data_or, self.count, self.vocab_words = self.build_dataset(self.vocabulary,
-                                                              self.vocabulary_size) 
+                                                               self.vocabulary_size) 
     self.train_data = self.subsampling(data_or)
     #self.train_data = data_or
 
@@ -22,13 +22,13 @@ class Options(object):
 
     self.save_vocab()
 
-  def read_data(self,filename):
+  def read_data(self, filename):
     with open(filename) as f:
       data = f.read().split()
       data = [x for x in data if x != 'eoood']
     return data
 
-  def build_dataset(self,words, n_words):
+  def build_dataset(self, words, n_words):
     """Process raw inputs into a ."""
     count = [['UNK', -1]]
     count.extend(collections.Counter(words).most_common(n_words - 1))
@@ -65,12 +65,14 @@ class Options(object):
     for idx, x in enumerate(count):
       sample_table += [idx]*int(x)
     return np.array(sample_table)
+    
   def weight_table(self):
     count = [ele[1] for ele in self.count]
     pow_frequency = np.array(count)**0.75
     power = sum(pow_frequency)
     ratio = pow_frequency/ power
     return np.array(ratio)
+    
   def subsampling(self,data):
     count = [ele[1] for ele in self.count]
     frequency = np.array(count)/sum(count)
@@ -83,8 +85,6 @@ class Options(object):
       if random.random()<P[word]:
         subsampled_data.append(word)
     return subsampled_data
-
-
 
   def generate_batch2(self, skip_window, batch_size):
     global data_index
@@ -146,8 +146,9 @@ class Options(object):
     neg_v = np.random.choice(self.sample_table, size=(batch_size*2*window_size,count))
     return np.array(pos_u), np.array(pos_v), neg_v
 
-
-
+################
+# After Training
+################
 
 import json, csv
 from scipy.stats import spearmanr
@@ -191,14 +192,13 @@ def scorefunction(embed):
       word2 = int(wordindex[eles[1]])
       humansim.append(float(eles[2]))
 
-
       value1 =  embed[word1]
       value2 =  embed[word2]
       index =index + 1
       score = cosine_similarity(value1, value2)
       consim.append(score)
 
-
+  # spearman relation
   cor1, pvalue1 = spearmanr(humansim, consim)
 
   if 1==1:
@@ -220,8 +220,7 @@ def scorefunction(embed):
       score = cosine_similarity(value1, value2)
       consim.append(score)
 
-
+  # spearman relation
   cor2, pvalue2 = spearmanr(humansim, consim)
-
 
   return cor1,cor2

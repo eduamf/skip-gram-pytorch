@@ -1,10 +1,12 @@
+# Adjusted by Eduardo A Mello Freitas
+# 
+
 import zipfile
 import collections
 import numpy as np
 
 import math
 import random
-
 
 import torch
 import torch.nn as nn
@@ -18,9 +20,8 @@ from inputdata import Options, scorefunction
 from model import skipgram
 
 
-
 class word2vec:
-  def __init__(self, inputfile, vocabulary_size=100000, embedding_dim=200, epoch_num=10, batch_size=16, windows_size=5,neg_sample_num=10):
+  def __init__(self, inputfile, vocabulary_size=100000, embedding_dim=100, epoch_num=10, batch_size=16, windows_size=5,neg_sample_num=10):
     self.op = Options(inputfile, vocabulary_size)
     self.embedding_dim = embedding_dim
     self.windows_size = windows_size
@@ -81,18 +82,3 @@ class word2vec:
 if __name__ == '__main__':
   wc= word2vec('text8')
   wc.train()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

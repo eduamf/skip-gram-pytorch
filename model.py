@@ -34,8 +34,10 @@ class skipgram(nn.Module):
     loss = log_target + sum_log_sampled
 
     return -1*loss.sum()/batch_size
+
   def input_embeddings(self):
     return self.u_embeddings.weight.data.cpu().numpy()
+
   def save_embedding(self, file_name, id2word):
     embeds = self.u_embeddings.weight.data
     fo = open(file_name, 'w')
