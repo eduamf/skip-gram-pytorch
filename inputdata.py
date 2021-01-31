@@ -23,7 +23,7 @@ class Options(object):
         self.save_vocab()
 
     def read_data(self, filename):
-        with open(filename) as f:
+        with open(filename, mode="r", encoding="utf8") as f:
             data = f.read().split()
             data = [x for x in data if x != 'eoood']
         return data

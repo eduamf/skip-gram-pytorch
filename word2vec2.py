@@ -1,7 +1,7 @@
 # Adjusted by Eduardo A Mello Freitas
 # 
 
-import time
+import time, os
 
 import torch
 import torch.optim as optim
@@ -72,6 +72,6 @@ class word2vec:
 
 if __name__ == '__main__':
     load_file("data",'europarl-v7.pt-en.pt')
-    wc = word2vec('big.txt')
+    wc = word2vec(os.path.join("data",'europarl-v7.pt-en.pt'))
     wc.train()
     
