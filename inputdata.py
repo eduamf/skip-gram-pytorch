@@ -1,7 +1,7 @@
 import collections
 import os
 import random
-
+import re
 import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
 
@@ -20,6 +20,7 @@ mdash = r'\u2014'
 mhyphen = r'\u002d'
 spc_hyf_spc = spc + mhyphen + spc
 spc_dsh_spc = spc + mdash + spc
+valid_chars = "[\wáàãâäéèêëíìïóòôöúùüçñ]"
 
 class Options(object):
     def __init__(self, datafile, vocabulary_size):
@@ -35,16 +36,19 @@ class Options(object):
 
         self.save_vocab()
 
-    def regularize(self, text):
+    def reg_cleaner(self, text):
       text.replace(shyphen,mdash).replace(ndash,mdash).replace(spc_hyf_spc,spc_dsh_spc)
-      text.replace(", ", spc).replace(crr,"").replace(mdash,"")
+      text.replace(crr,"").replace(l2qm,"").replace(r2qm,"")
+      text.replace(", ",spc).replace(qm2,"").replace(";", "").replace(' " ', spc)
+      # mdash will be used to split sentence or reduce window
       return text.lower()
 
     def read_data(self, filename):
         f_in = open(filename, mode="r", encoding="utf8")
         data = f_in.read()
-        data = self.regularize(data)
-        data = [x for x in data if x not in "\n,­­­­"]
+        data = self.reg_cleaner(data)
+        sents = data.split("\n")
+        sents = [x for x in sents if len(x) > 4]
         return data
 
     def build_dataset(self, words, n_words):
