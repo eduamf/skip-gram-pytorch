@@ -25,7 +25,8 @@ valid_chars = "[\wáàãâäéèêëíìïóòôöúùüçñ]"
 class Options(object):
     def __init__(self, datafile, vocabulary_size):
         self.vocabulary_size = vocabulary_size
-        self.save_path = "data"
+        self.save_path = "tmp"
+        self.sents = None
         self.vocabulary = self.read_data(datafile)
         data_or, self.count, self.vocab_words = self.build_dataset(self.vocabulary,
                                                                    self.vocabulary_size)
@@ -48,8 +49,9 @@ class Options(object):
         data = f_in.read()
         data = self.reg_cleaner(data)
         sents = data.split("\n")
-        sents = [x for x in sents if len(x) > 4]
-        return data
+        self.sents = [x for x in sents if len(x) > 4]
+        vocabulary = re.findall(r'[\wáàãâäéèêëíìïóòôöúùüçñ]{2,}', data)
+        return vocabulary
 
     def build_dataset(self, words, n_words):
         """Process raw inputs into a ."""
