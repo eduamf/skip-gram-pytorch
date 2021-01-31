@@ -7,7 +7,7 @@ import torch
 import torch.optim as optim
 from torch.autograd import Variable
 
-from download_file import download_file
+from load_file import load_file
 from inputdata import Options, scorefunction
 from model import skipgram
 
@@ -71,7 +71,7 @@ class word2vec:
 
 
 if __name__ == '__main__':
-    download_file('https://github.com/dscape/spell/blob/master/test/resources/big.txt','big.txt')
+    load_file("data",'europarl-v7.pt-en.pt')
     wc = word2vec('big.txt')
     wc.train()
     
