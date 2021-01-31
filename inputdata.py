@@ -27,8 +27,7 @@ class Options(object):
         self.vocabulary_size = vocabulary_size
         self.save_path = "tmp"
         self.sents = None
-        self.vocabulary = self.read_data(datafile)
-        data_or, self.count, self.vocab_words = self.build_dataset(self.vocabulary,
+        data_or, self.count, self.vocab_words = self.build_dataset(self.read_data(datafile),
                                                                    self.vocabulary_size)
         self.train_data = self.subsampling(data_or)
         # self.train_data = data_or
@@ -50,11 +49,11 @@ class Options(object):
         data = self.reg_cleaner(data)
         sents = data.split("\n")
         self.sents = [x for x in sents if len(x) > 4]
-        vocabulary = re.findall(r'[\wáàãâäéèêëíìïóòôöúùüçñ]{2,}', data)
-        return vocabulary
+        words = re.findall(r'[\wáàãâäéèêëíìïóòôöúùüçñ]{2,}', data)
+        return words
 
     def build_dataset(self, words, n_words):
-        """Process raw inputs into a ."""
+        # Create dictionary and reverse
         count = [['UNK', -1]]
         count.extend(collections.Counter(words).most_common(n_words - 1))
         dictionary = dict()
