@@ -11,7 +11,7 @@ data_index = 0
 class Options(object):
     def __init__(self, datafile, vocabulary_size):
         self.vocabulary_size = vocabulary_size
-        self.save_path = "tmp"
+        self.save_path = "data"
         self.vocabulary = self.read_data(datafile)
         data_or, self.count, self.vocab_words = self.build_dataset(self.vocabulary,
                                                                    self.vocabulary_size)
