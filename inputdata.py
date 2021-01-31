@@ -7,6 +7,19 @@ from six.moves import xrange  # pylint: disable=redefined-builtin
 
 data_index = 0
 
+# chars and groups
+nwl = r'\n'
+crr = r'\r'
+l2qm = r'00ab'
+r2qm = r'00bb'
+spc = r'\u0020'
+qm2 = r'\u0022'
+shyphen = r'\u00ad'
+ndash = r'\u2013'
+mdash = r'\u2014'
+mhyphen = r'\u002d'
+spc_hyf_spc = spc + mhyphen + spc
+spc_dsh_spc = spc + mdash + spc
 
 class Options(object):
     def __init__(self, datafile, vocabulary_size):
@@ -22,10 +35,16 @@ class Options(object):
 
         self.save_vocab()
 
+    def regularize(self, text):
+      text.replace(shyphen,mdash).replace(ndash,mdash).replace(spc_hyf_spc,spc_dsh_spc)
+      text.replace(", ", spc).replace(crr,"").replace(mdash,"")
+      return text.lower()
+
     def read_data(self, filename):
-        with open(filename, mode="r", encoding="utf8") as f:
-            data = f.read().split()
-            data = [x for x in data if x != 'eoood']
+        f_in = open(filename, mode="r", encoding="utf8")
+        data = f_in.read()
+        data = self.regularize(data)
+        data = [x for x in data if x not in "\n,­­­­"]
         return data
 
     def build_dataset(self, words, n_words):
@@ -152,7 +171,6 @@ class Options(object):
 import csv
 from scipy.stats import spearmanr
 import math
-
 
 def cosine_similarity(v1, v2):
     "compute cosine similarity of v1 to v2: (v1 dot v2)/{||v1||*||v2||)"
