@@ -21,14 +21,19 @@ mhyphen = r'\u002d'
 spc_hyf_spc = spc + mhyphen + spc
 spc_dsh_spc = spc + mdash + spc
 valid_chars = "[\wáàãâäéèêëíìïóòôöúùüçñ]"
+phifen = r'[\wáàãâäéèêëíìïóòôöúùüçñæßœ]+[\wáàãâäéèêëíìïóòôöúùüçñæßœ\'\-]*[\wáàãâäéèêëíìïóòôöúùüçñæßœ]+'
+
 
 class Options(object):
     def __init__(self, datafile, vocabulary_size):
+        with open(os.path.join("data","stopword_pt.txt"),mode='r',encoding='utf-8') as fstop:
+          self.stopwords = fstop.read().split()
+          fstop.close()
+          
         self.vocabulary_size = vocabulary_size
         self.save_path = "tmp"
         self.sents = None
-        data_or, self.count, self.vocab_words = self.build_dataset(self.read_data(datafile),
-                                                                   self.vocabulary_size)
+        data_or, self.count, self.vocab_words = self.build_dataset(self.read_data(datafile))
         self.train_data = self.subsampling(data_or)
         # self.train_data = data_or
 
@@ -45,37 +50,44 @@ class Options(object):
       return text.lower()
 
     def read_data(self, filename):
-      with codecs.open(filename, mode='r', encoding='utf-8', errors='ignore') as fdata:
+        fdata = codecs.open(filename, mode='r', encoding='utf-8', errors='ignore')
         data = fdata.read()
         data = self.reg_cleaner(data)
-        words = re.findall(r'[\wáàãâäéèêëíìïóòôöúùüçñ]{2,}', data)
-        fstop = open(os.path.join("data","stopword_pt.txt"), mode='r', encoding='utf-8')
-        stopwords = fstop.read().split()
-        fstop.close()
+        fdata.close()
+        words = re.findall(phifen, data)
+        words = [*words]
+        # [w for w in words if w not in self.stopwords]
         sents = data.split("\n")
         self.sents = [x for x in sents if len(x) > 4]
-        fdata.close()
-        return [w for w in words if w not in stopwords]
+        return words
 
-    def build_dataset(self, words, n_words):
+    def build_dataset(self, words):
         # Create dictionary and reverse
-        count = [('UNK', -1)]
-        count.extend(collections.Counter(words).most_common(n_words - 1))
-        dictionary = dict()
-        for word, _ in count:
-            dictionary[word] = len(dictionary)
-        data = list()
-        unk_count = 0
-        for word in words:
-            if word in dictionary:
-                index = dictionary[word]
-            else:
-                index = 0  # dictionary['UNK']
-                unk_count += 1
-            data.append(index)
-        count[0][1] = unk_count
+        # start with 0 instead of -1
+        cnt_full = collections.Counter(words).most_common()
+        # UNK is not a word
+        cnt_lmtd = collections.Counter(words).most_common(self.vocabulary_size)
+        unk_count = len(cnt_full) - len(cnt_lmtd)
+        cnt_full = None
+        cnt_vocab = [('UNK', unk_count)]
+        cnt_vocab.extend(cnt_lmtd)
+        dictionary = dict(cnt_vocab)
+        ## it is so slow and wrong: number of instances of word is diff
+        #for word, _ in count:
+        #    dictionary[word] = len(dictionary)
+        #data = list()
+        # unk_count = 0
+        # for word in words:
+        #     if word in dictionary:
+        #         index = dictionary[word]
+        #     else:
+        #         index = 0  # dictionary['UNK']
+        #         unk_count += 1
+        #     data.append(index)
+        # count[0][1] = unk_count
+        data = [dictionary[w] if w in dictionary else 0 for w in words]     
         reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
-        return data, count, reversed_dictionary
+        return data, cnt_vocab, reversed_dictionary
 
     def save_vocab(self):
         if not os.path.exists(self.save_path):
