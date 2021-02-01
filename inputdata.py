@@ -1,7 +1,7 @@
 import collections
 import os
 import random
-import re
+import re, codecs
 import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
 
@@ -40,21 +40,26 @@ class Options(object):
       text.replace(shyphen,mdash).replace(ndash,mdash).replace(spc_hyf_spc,spc_dsh_spc)
       text.replace(crr,"").replace(l2qm,"").replace(r2qm,"")
       text.replace(", ",spc).replace(qm2,"").replace(";", "").replace(' " ', spc)
+      text.replace("(","").replace(")","")
       # mdash will be used to split sentence or reduce window
       return text.lower()
 
     def read_data(self, filename):
-        f_in = open(filename, mode="r", encoding="utf8")
-        data = f_in.read()
+      with codecs.open(filename, mode='r', encoding='utf-8', errors='ignore') as fdata:
+        data = fdata.read()
         data = self.reg_cleaner(data)
+        words = re.findall(r'[\wáàãâäéèêëíìïóòôöúùüçñ]{2,}', data)
+        fstop = open(os.path.join("data","stopword_pt.txt"), mode='r', encoding='utf-8')
+        stopwords = fstop.read().split()
+        fstop.close()
         sents = data.split("\n")
         self.sents = [x for x in sents if len(x) > 4]
-        words = re.findall(r'[\wáàãâäéèêëíìïóòôöúùüçñ]{2,}', data)
-        return words
+        fdata.close()
+        return [w for w in words if w not in stopwords]
 
     def build_dataset(self, words, n_words):
         # Create dictionary and reverse
-        count = [['UNK', -1]]
+        count = [('UNK', -1)]
         count.extend(collections.Counter(words).most_common(n_words - 1))
         dictionary = dict()
         for word, _ in count:
@@ -147,7 +152,6 @@ class Options(object):
         context = np.ndarray(shape=(batch_size, 2 * window_size), dtype=np.int64)
         labels = np.ndarray(shape=(batch_size), dtype=np.int64)
         pos_pair = []
-
         if data_index + span > len(data):
             data_index = 0
             self.process = False
