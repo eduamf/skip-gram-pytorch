@@ -63,29 +63,14 @@ class Options(object):
 
     def build_dataset(self, words):
         # Create dictionary and reverse
-        # start with 0 instead of -1
-        cnt_full = collections.Counter(words).most_common()
-        # UNK is not a word
-        cnt_lmtd = collections.Counter(words).most_common(self.vocabulary_size)
-        unk_count = len(cnt_full) - len(cnt_lmtd)
-        cnt_full = None
+        # start with correct values instead of -1
+        # UNK is not a word; index = 0
+        unk_count = len(collections.Counter(words)) - self.vocabulary_size
         cnt_vocab = [('UNK', unk_count)]
-        cnt_vocab.extend(cnt_lmtd)
+        cnt_vocab.extend(collections.Counter(words).most_common(self.vocabulary_size))
         dictionary = dict(cnt_vocab)
-        ## it is so slow and wrong: number of instances of word is diff
-        #for word, _ in count:
-        #    dictionary[word] = len(dictionary)
-        #data = list()
-        # unk_count = 0
-        # for word in words:
-        #     if word in dictionary:
-        #         index = dictionary[word]
-        #     else:
-        #         index = 0  # dictionary['UNK']
-        #         unk_count += 1
-        #     data.append(index)
-        # count[0][1] = unk_count
-        data = [dictionary[w] if w in dictionary else 0 for w in words]     
+        self.lst_dict = list(dictionary.keys())
+        data = [w if w in self.lst_dict else 'UNK' for w in words]
         reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
         return data, cnt_vocab, reversed_dictionary
 
