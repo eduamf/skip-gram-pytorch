@@ -1,7 +1,7 @@
 import collections
 import os
 import random
-import re, codecs
+import re
 import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
 
@@ -10,19 +10,19 @@ data_index = 0
 # chars and groups
 nwl = r'\n'
 crr = r'\r'
-l2qm = r'00ab'
-r2qm = r'00bb'
+repl = r'\uFFFD'
+l2qm = r'\u00AB'
+r2qm = r'\u00BB'
 spc = r'\u0020'
 qm2 = r'\u0022'
-shyphen = r'\u00ad'
+shyphen = r'\u00AD'
 ndash = r'\u2013'
 mdash = r'\u2014'
-mhyphen = r'\u002d'
+mhyphen = r'\u002D'
 spc_hyf_spc = spc + mhyphen + spc
 spc_dsh_spc = spc + mdash + spc
-valid_chars = "[\wáàãâäéèêëíìïóòôöúùüçñ]"
-phifen = r'[\wáàãâäéèêëíìïóòôöúùüçñæßœ]+[\wáàãâäéèêëíìïóòôöúùüçñæßœ\'\-]*[\wáàãâäéèêëíìïóòôöúùüçñæßœ]+'
-
+valid_chars = "[áàãâäéèêëíìïóòôöúùüçñæßœa-z\'\-]"
+phifen = r'[áàãâäéèêëíìïóòôöúùüçñæßœa-z\'\-\u00AD]{2,}'
 
 class Options(object):
     def __init__(self, datafile, vocabulary_size):
@@ -42,15 +42,19 @@ class Options(object):
         self.save_vocab()
 
     def reg_cleaner(self, text):
-      text.replace(shyphen,mdash).replace(ndash,mdash).replace(spc_hyf_spc,spc_dsh_spc)
-      text.replace(crr,"").replace(l2qm,"").replace(r2qm,"")
-      text.replace(", ",spc).replace(qm2,"").replace(";", "").replace(' " ', spc)
-      text.replace("(","").replace(")","")
-      # mdash will be used to split sentence or reduce window
-      return text.lower()
+        text = text.replace(repl, mhyphen)
+        text = text.replace(u"«", u"“").replace(u"»", u"”")
+        text = text.replace(shyphen, mhyphen).replace(ndash, mhyphen).replace(mdash, mhyphen)
+        text = text.replace(spc_hyf_spc,spc).replace(' " ', spc)
+        text = text.replace(crr,"").replace(l2qm,"").replace(r2qm,"")
+        text = text.replace(", ",spc).replace(qm2,"").replace(";", "")
+        text = text.replace("(","").replace(")","")
+        text = text.lower()
+        # mdash will be used to split sentence or reduce window
+        return text
 
     def read_data(self, filename):
-        fdata = codecs.open(filename, mode='r', encoding='utf-8', errors='ignore')
+        fdata = open(filename, mode='r', encoding='utf-8', errors='backslashreplace')
         data = fdata.read()
         data = self.reg_cleaner(data)
         fdata.close()
@@ -61,6 +65,14 @@ class Options(object):
         self.sents = [x for x in sents if len(x) > 4]
         return words
 
+    def word_to_idx(self, w):
+        w = w.replace(shyphen, mhyphen)
+        if w in self.dictionary:
+            indice = int(self.dictionary[w])
+        else: 
+            indice = 0
+        return indice
+      
     def build_dataset(self, words):
         # Create dictionary and reverse
         # start with correct values instead of -1
@@ -68,11 +80,13 @@ class Options(object):
         unk_count = len(collections.Counter(words)) - self.vocabulary_size
         cnt_vocab = [('UNK', unk_count)]
         cnt_vocab.extend(collections.Counter(words).most_common(self.vocabulary_size))
-        dictionary = dict(cnt_vocab)
-        self.lst_dict = list(dictionary.keys())
-        data = [w if w in self.lst_dict else 'UNK' for w in words]
-        reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
-        return data, cnt_vocab, reversed_dictionary
+        vocab_idx = np.array(cnt_vocab, dtype='str')[:,0]
+        self.dictionary = {k:v for k, v in zip(vocab_idx.tolist(), range(len(cnt_vocab)))}
+        del vocab_idx
+        # data order
+        data_ord = [self.word_to_idx(w) for w in words]
+        reversed_dictionary = dict(zip(self.dictionary.values(), self.dictionary.keys()))
+        return data_ord, cnt_vocab, reversed_dictionary
 
     def save_vocab(self):
         if not os.path.exists(self.save_path):
@@ -191,9 +205,8 @@ def cosine_similarity(v1, v2):
 
 
 def scorefunction(embed):
-    f = open('./tmp/vocab.txt')
+    f = open('./tmp/vocab.txt', encoding="utf8")
     line = f.readline()
-    vocab = []
     wordindex = dict()
     index = 0
     while line:
@@ -202,7 +215,6 @@ def scorefunction(embed):
         index = index + 1
         line = f.readline()
     f.close()
-    ze = []
     with open('./wordsim353/combined.csv') as csvfile:
         filein = csv.reader(csvfile)
         index = 0
