@@ -59,13 +59,20 @@ class word2vec:
                 if batch_num % 2000 == 0:
                     end = time.time()
                     word_embeddings = model.input_embeddings()
-                    sp1, sp2 = scorefunction(word_embeddings)
-                    print('eporch,batch=%2d %5d: sp=%1.3f %1.3f  pair/sec = %4.2f loss=%4.3f\r' \
-                          % (epoch, batch_num, sp1, sp2, (batch_num - batch_new) * self.batch_size / (end - start),
-                             loss.data[0]), end="")
+                    ## sp1 and sp2 based in distinct words
+                    # sp1, sp2 = scorefunction(word_embeddings)
+                    ## loss,data[0] to loss.data
+                    # print('eporch,batch=%2d %5d: sp=%1.3f %1.3f  pair/sec = %4.2f loss=%4.3f\r' \
+                    #       % (epoch, batch_num, sp1, sp2, (batch_num - batch_new) * self.batch_size / (end - start),
+                    #          loss.data), end="")
+                    print('eporch,batch=%2d %5d: pair/sec = %4.2f loss=%4.3f\r' \
+                          % (epoch, batch_num,
+                             (batch_num - batch_new) * self.batch_size / (end - start),
+                             loss.data), end="")
                     batch_new = batch_num
                     start = time.time()
                 batch_num = batch_num + 1
+            model.save_embedding()
             print()
         print("Optimization Finished!")
 

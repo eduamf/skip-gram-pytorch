@@ -39,8 +39,9 @@ class skipgram(nn.Module):
 
     def save_embedding(self, file_name, id2word):
         embeds = self.u_embeddings.weight.data
-        fo = open(file_name, 'w')
+        fo = open(file_name, mode='w', encoding="utf8")
         for idx in range(len(embeds)):
             word = id2word(idx)
             embed = ' '.join(embeds[idx])
             fo.write(word + ' ' + embed + '\n')
+        fo.close()

@@ -91,7 +91,7 @@ class Options(object):
     def save_vocab(self):
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path, exist_ok=True)
-        with open(os.path.join(self.save_path, "vocab.txt"), "w") as f:
+        with open(os.path.join(self.save_path,"vocab.txt"),mode="w",encoding="utf8") as f:
             for i in xrange(len(self.count)):
                 vocab_word = self.vocab_words[i]
                 f.write("%s %d\n" % (vocab_word, self.count[i][1]))
@@ -162,7 +162,6 @@ class Options(object):
         span = 2 * window_size + 1
         context = np.ndarray(shape=(batch_size, 2 * window_size), dtype=np.int64)
         labels = np.ndarray(shape=(batch_size), dtype=np.int64)
-        pos_pair = []
         if data_index + span > len(data):
             data_index = 0
             self.process = False
@@ -205,7 +204,7 @@ def cosine_similarity(v1, v2):
 
 
 def scorefunction(embed):
-    f = open('./tmp/vocab.txt', encoding="utf8")
+    f = open('./tmp/vocab.txt',mode="r",encoding="utf8")
     line = f.readline()
     wordindex = dict()
     index = 0
