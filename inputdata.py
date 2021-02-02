@@ -33,7 +33,8 @@ class Options(object):
         self.vocabulary_size = vocabulary_size
         self.save_path = "tmp"
         self.sents = None
-        data_or, self.count, self.vocab_words = self.build_dataset(self.read_data(datafile))
+        
+        data_or, self.count, self.dic_idx2word = self.build_dataset(self.read_data(datafile))
         self.train_data = self.subsampling(data_or)
         # self.train_data = data_or
 
@@ -67,25 +68,25 @@ class Options(object):
 
     def word_to_idx(self, w):
         w = w.replace(shyphen, mhyphen)
-        if w in self.dictionary:
-            indice = int(self.dictionary[w])
+        if w in self.dic_word2idx:
+            indice = int(self.dic_word2idx[w])
         else: 
             indice = 0
         return indice
-      
+
     def build_dataset(self, words):
         # Create dictionary and reverse
         # start with correct values instead of -1
         # UNK is not a word; index = 0
-        unk_count = len(collections.Counter(words)) - self.vocabulary_size
+        unk_count = len(collections.Counter(words)) - self.vocabulary_size - 1
         cnt_vocab = [('UNK', unk_count)]
-        cnt_vocab.extend(collections.Counter(words).most_common(self.vocabulary_size))
+        cnt_vocab.extend(collections.Counter(words).most_common(self.vocabulary_size - 1))
         vocab_idx = np.array(cnt_vocab, dtype='str')[:,0]
-        self.dictionary = {k:v for k, v in zip(vocab_idx.tolist(), range(len(cnt_vocab)))}
+        self.dic_word2idx = {k:v for k, v in zip(vocab_idx.tolist(), range(len(cnt_vocab)))}
         del vocab_idx
         # data order
         data_ord = [self.word_to_idx(w) for w in words]
-        reversed_dictionary = dict(zip(self.dictionary.values(), self.dictionary.keys()))
+        reversed_dictionary = dict(zip(self.dic_word2idx.values(), self.dic_word2idx.keys()))
         return data_ord, cnt_vocab, reversed_dictionary
 
     def save_vocab(self):
@@ -93,7 +94,7 @@ class Options(object):
             os.makedirs(self.save_path, exist_ok=True)
         with open(os.path.join(self.save_path,"vocab.txt"),mode="w",encoding="utf8") as f:
             for i in xrange(len(self.count)):
-                vocab_word = self.vocab_words[i]
+                vocab_word = self.dic_idx2word[i]
                 f.write("%s %d\n" % (vocab_word, self.count[i][1]))
 
     def init_sample_table(self):

@@ -13,8 +13,8 @@ from model import skipgram
 
 
 class word2vec:
-    def __init__(self, inputfile, vocabulary_size=100000, embedding_dim=200, epoch_num=10, batch_size=16,
-                 windows_size=5, neg_sample_num=10):
+    def __init__(self, inputfile, vocabulary_size=100000, embedding_dim=100, epoch_num=10,
+                 batch_size=32, windows_size=5, neg_sample_num=10):
         self.op = Options(inputfile, vocabulary_size)
         self.embedding_dim = embedding_dim
         self.windows_size = windows_size
@@ -56,9 +56,9 @@ class word2vec:
                 if batch_num % 30000 == 0:
                     torch.save(model.state_dict(), './tmp/skipgram.epoch{}.batch{}'.format(epoch, batch_num))
 
-                if batch_num % 2000 == 0:
+                if batch_num % 1000 == 0:
                     end = time.time()
-                    word_embeddings = model.input_embeddings()
+                    # word_embeddings = model.input_embeddings()
                     ## sp1 and sp2 based in distinct words
                     # sp1, sp2 = scorefunction(word_embeddings)
                     ## loss,data[0] to loss.data
@@ -72,7 +72,12 @@ class word2vec:
                     batch_new = batch_num
                     start = time.time()
                 batch_num = batch_num + 1
-            model.save_embedding()
+            # saving each epoch
+            # bell
+            print('\a')
+            model.save_embedding(os.path.join("data",
+                                              "embed_epoch_" + str(epoch) + ".vec"),
+                                 self.op.dic_idx2word)
             print()
         print("Optimization Finished!")
 
