@@ -1,4 +1,4 @@
-UNK 61806
+UNK 61805
 de 2385107
 que 1671712
 da 835903
@@ -99998,4 +99998,3 @@ compreeensão 2
 mantm 2
 exploraçes 2
 sobrevivncia 2
-inflaço 2

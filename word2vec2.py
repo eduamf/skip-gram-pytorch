@@ -14,7 +14,7 @@ from model import skipgram
 
 class word2vec:
     def __init__(self, inputfile, vocabulary_size=100000, embedding_dim=100, epoch_num=10,
-                 batch_size=32, windows_size=5, neg_sample_num=10):
+                 batch_size=32, windows_size=4, neg_sample_num=7):
         self.op = Options(inputfile, vocabulary_size)
         self.embedding_dim = embedding_dim
         self.windows_size = windows_size
@@ -71,6 +71,7 @@ class word2vec:
                              loss.data), end="")
                     batch_new = batch_num
                     start = time.time()
+                    print()
                 batch_num = batch_num + 1
             # saving each epoch
             # bell
